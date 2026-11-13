@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1200 440" width="1200" height="440" role="img" aria-label="MARSWALK animated banner: an EVA route drawing itself across Martian terrain with live telemetry" xmlns:c2pa="http://c2pa.org/manifest">
+  <title>MARSWALK: EVA planning HUD for Mars</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07090D"/>
+      <stop offset="1" stop-color="#140A07"/>
+    </linearGradient>
+    <radialGradient id="rustGlow" cx="0.9" cy="1" r="0.9">
+      <stop offset="0" stop-color="#E2572B" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#E2572B" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="cyanGlow" cx="0.1" cy="0" r="0.8">
+      <stop offset="0" stop-color="#4FD1C5" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#4FD1C5" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="routeGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#4FD1C5"/>
+      <stop offset="1" stop-color="#E2572B"/>
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#E8E6E1"/>
+      <stop offset="1" stop-color="#E2572B"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="panelClip"><rect x="560" y="40" width="580" height="360" rx="18"/></clipPath>
+    <path id="route" d="M610,350 C640,300 670,270 700,240 C750,200 800,190 850,170 C920,150 980,180 1010,230 C1030,260 1070,290 1060,330 C1040,380 960,380 900,372 C800,385 700,380 610,350"/>
+  </defs>
+
+  <style>
+    .sans { font-family: 'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif; }
+    .mono { font-family: 'JetBrains Mono',Menlo,Consolas,'Courier New',monospace; }
+    .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw 10s ease-in-out infinite; }
+    @keyframes draw {
+      0%   { stroke-dashoffset: 1; opacity: 1; }
+      60%  { stroke-dashoffset: 0; opacity: 1; }
+      92%  { stroke-dashoffset: 0; opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 0; }
+    }
+    .flow { stroke-dasharray: 6 10; animation: flow 1.2s linear infinite; }
+    @keyframes flow { to { stroke-dashoffset: -32; } }
+    .twinkle { animation: twinkle 3s ease-in-out infinite; }
+    .twinkle.b { animation-duration: 4.2s; animation-delay: .8s; }
+    .twinkle.c { animation-duration: 2.4s; animation-delay: 1.4s; }
+    @keyframes twinkle { 0%,100% { opacity: .15; } 50% { opacity: .95; } }
+    .blink { animation: blink 1s steps(2,start) infinite; }
+    @keyframes blink { to { visibility: hidden; } }
+    .fadein { opacity: 0; animation: fadein 1s ease-out forwards; }
+    .d1 { animation-delay: .2s; } .d2 { animation-delay: .5s; } .d3 { animation-delay: .8s; } .d4 { animation-delay: 1.1s; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .o2bar { transform-box: fill-box; transform-origin: left; animation: o2 10s linear infinite; }
+    @keyframes o2 { 0% { transform: scaleX(1); } 60%,100% { transform: scaleX(.72); } }
+    .pwrbar { transform-box: fill-box; transform-origin: left; animation: pwr 10s linear infinite; }
+    @keyframes pwr { 0% { transform: scaleX(1); } 60%,100% { transform: scaleX(.8); } }
+    .bracket { stroke: #E2572B; stroke-width: 2; fill: none; opacity: .8; }
+  </style>
+
+  <!-- Background -->
+  <rect width="1200" height="440" fill="url(#bg)"/>
+  <rect width="1200" height="440" fill="url(#rustGlow)"/>
+  <rect width="1200" height="440" fill="url(#cyanGlow)"/>
+
+  <!-- Starfield -->
+  <g fill="#E8E6E1">
+    <circle class="twinkle" cx="40" cy="30" r="1.4"/>
+    <circle class="twinkle b" cx="130" cy="70" r="1"/>
+    <circle class="twinkle c" cx="260" cy="24" r="1.6"/>
+    <circle class="twinkle" cx="380" cy="60" r="1"/>
+    <circle class="twinkle b" cx="470" cy="22" r="1.4"/>
+    <circle class="twinkle c" cx="520" cy="120" r="1"/>
+    <circle class="twinkle" cx="90" cy="400" r="1.2"/>
+    <circle class="twinkle b" cx="300" cy="415" r="1"/>
+    <circle class="twinkle c" cx="1170" cy="40" r="1.4"/>
+    <circle class="twinkle" cx="1180" cy="230" r="1"/>
+    <circle class="twinkle b" cx="1165" cy="410" r="1.4"/>
+    <circle class="twinkle c" cx="420" cy="380" r="1"/>
+  </g>
+
+  <!-- LEFT: title block -->
+  <g class="sans">
+    <g class="fadein d1">
+      <text x="64" y="92" class="mono" font-size="14" fill="#4FD1C5" letter-spacing="4">NASA SPACE APPS 2026</text>
+    </g>
+    <g class="fadein d2">
+      <text x="60" y="168" font-size="76" font-weight="700" fill="url(#titleGrad)" letter-spacing="3">MARSWALK</text>
+    </g>
+    <g class="fadein d3">
+      <text x="64" y="206" font-size="20" fill="#E8E6E1" opacity=".85">EVA planning &amp; telemetry HUD for Mars</text>
+      <text x="64" y="234" font-size="15" fill="#E8E6E1" opacity=".55">Slope-aware routes · radiation &amp; dust safety · real NASA data</text>
+    </g>
+  </g>
+
+  <!-- Telemetry gauges -->
+  <g class="mono fadein d4" font-size="12" fill="#E8E6E1">
+    <text x="64" y="288" opacity=".6" letter-spacing="2">O2 RESERVE</text>
+    <rect x="170" y="278" width="260" height="8" rx="4" fill="#ffffff" opacity=".1"/>
+    <rect class="o2bar" x="170" y="278" width="260" height="8" rx="4" fill="#4FD1C5"/>
+
+    <text x="64" y="318" opacity=".6" letter-spacing="2">SUIT POWER</text>
+    <rect x="170" y="308" width="260" height="8" rx="4" fill="#ffffff" opacity=".1"/>
+    <rect class="pwrbar" x="170" y="308" width="260" height="8" rx="4" fill="#F6B042"/>
+
+    <text x="64" y="348" opacity=".6" letter-spacing="2">SLOPE LIMIT</text>
+    <text x="170" y="348" fill="#E2572B">20° (blocked above)</text>
+
+    <text x="64" y="388" fill="#4FD1C5" letter-spacing="2">SOL 1 · EVA 1 · GALE CRATER</text>
+    <text x="64" y="408" opacity=".5">4.725° S, 137.385° E</text>
+    <rect class="blink" x="250" y="398" width="8" height="12" fill="#4FD1C5" transform="translate(120 -10)"/>
+  </g>
+
+  <!-- RIGHT: map panel -->
+  <rect x="560" y="40" width="580" height="360" rx="18" fill="#0B0F14" stroke="#E8E6E1" stroke-opacity=".18"/>
+
+  <g clip-path="url(#panelClip)">
+    <!-- grid -->
+    <g stroke="#4FD1C5" stroke-opacity=".08" stroke-width="1">
+      <path d="M560 100H1140M560 160H1140M560 220H1140M560 280H1140M560 340H1140"/>
+      <path d="M620 40V400M680 40V400M740 40V400M800 40V400M860 40V400M920 40V400M980 40V400M1040 40V400M1100 40V400"/>
+    </g>
+
+    <!-- terrain contours -->
+    <g fill="none" stroke="#E2572B" stroke-opacity=".22" stroke-width="1.2">
+      <path d="M560 330 C640 290 700 320 780 280 C860 240 900 270 1000 210 C1060 175 1100 190 1140 160"/>
+      <path d="M560 300 C650 255 710 290 790 245 C870 205 910 240 1005 180 C1065 145 1105 160 1140 130"/>
+      <path d="M560 270 C660 225 720 260 800 215 C880 175 920 210 1010 150 C1070 115 1110 130 1140 100"/>
+      <path d="M560 360 C640 330 710 350 790 320 C870 290 920 310 1010 270 C1070 240 1110 250 1140 225"/>
+      <path d="M560 390 C640 370 720 385 800 360 C880 335 930 350 1020 320 C1080 295 1115 300 1140 285"/>
+    </g>
+
+    <!-- boxwork ridges -->
+    <g stroke="#E8E6E1" stroke-opacity=".10" stroke-width="1.5" fill="none">
+      <path d="M700 120 L780 150 L860 110 L950 140 L1030 100"/>
+      <path d="M690 180 L770 205 L850 175 L940 200 L1040 160"/>
+      <path d="M780 150 L770 205 M860 110 L850 175 M950 140 L940 200 M1030 100 L1040 160"/>
+    </g>
+
+    <!-- blocked slope zones -->
+    <g>
+      <ellipse cx="790" cy="292" rx="52" ry="34" fill="#E2572B" fill-opacity=".14" stroke="#E2572B" stroke-opacity=".8" stroke-dasharray="4 4"/>
+      <text x="790" y="296" text-anchor="middle" class="mono" font-size="10" fill="#E2572B" letter-spacing="1">&gt;20° BLOCKED</text>
+      <ellipse cx="955" cy="290" rx="40" ry="26" fill="#F6B042" fill-opacity=".10" stroke="#F6B042" stroke-opacity=".7" stroke-dasharray="4 4"/>
+      <text x="955" y="294" text-anchor="middle" class="mono" font-size="10" fill="#F6B042" letter-spacing="1">STEEP</text>
+    </g>
+
+    <!-- route: faint ghost + animated draw -->
+    <use xlink:href="#route" fill="none" stroke="#E8E6E1" stroke-opacity=".12" stroke-width="3" stroke-dasharray="3 7"/>
+    <path d="M610,350 C640,300 670,270 700,240 C750,200 800,190 850,170 C920,150 980,180 1010,230 C1030,260 1070,290 1060,330 C1040,380 960,380 900,372 C800,385 700,380 610,350"
+          pathLength="1" class="draw" fill="none" stroke="url(#routeGrad)" stroke-width="4" stroke-linecap="round" filter="url(#glow)"/>
+    <path d="M610,350 C640,300 670,270 700,240 C750,200 800,190 850,170 C920,150 980,180 1010,230 C1030,260 1070,290 1060,330 C1040,380 960,380 900,372 C800,385 700,380 610,350"
+          fill="none" stroke="#ffffff" stroke-opacity=".5" stroke-width="1.5" class="flow"/>
+
+    <!-- habitat -->
+    <g>
+      <rect x="598" y="338" width="24" height="24" rx="5" fill="#0B0F14" stroke="#E8E6E1" stroke-width="2"/>
+      <text x="610" y="355" text-anchor="middle" class="mono" font-size="11" font-weight="700" fill="#E8E6E1">H</text>
+      <text x="610" y="378" text-anchor="middle" class="mono" font-size="10" fill="#E8E6E1" opacity=".6">HAB</text>
+    </g>
+
+    <!-- stops -->
+    <g class="mono" font-size="11">
+      <g opacity="0">
+        <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.07;0.10;0.93;1" dur="10s" repeatCount="indefinite"/>
+        <circle cx="700" cy="240" r="9" fill="none" stroke="#4FD1C5"><animate attributeName="r" values="9;22" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0" dur="2s" repeatCount="indefinite"/></circle>
+        <circle cx="700" cy="240" r="7" fill="#4FD1C5"/>
+        <text x="700" y="222" text-anchor="middle" fill="#E8E6E1">S1</text>
+      </g>
+      <g opacity="0">
+        <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.18;0.21;0.93;1" dur="10s" repeatCount="indefinite"/>
+        <circle cx="850" cy="170" r="9" fill="none" stroke="#4FD1C5"><animate attributeName="r" values="9;22" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0" dur="2s" repeatCount="indefinite"/></circle>
+        <circle cx="850" cy="170" r="7" fill="#4FD1C5"/>
+        <text x="850" y="152" text-anchor="middle" fill="#E8E6E1">S2</text>
+      </g>
+      <g opacity="0">
+        <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.31;0.34;0.93;1" dur="10s" repeatCount="indefinite"/>
+        <circle cx="1010" cy="230" r="9" fill="none" stroke="#4FD1C5"><animate attributeName="r" values="9;22" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0" dur="2s" repeatCount="indefinite"/></circle>
+        <circle cx="1010" cy="230" r="7" fill="#4FD1C5"/>
+        <text x="1010" y="212" text-anchor="middle" fill="#E8E6E1">S3</text>
+      </g>
+      <g opacity="0">
+        <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;0.42;0.45;0.93;1" dur="10s" repeatCount="indefinite"/>
+        <circle cx="1060" cy="330" r="9" fill="none" stroke="#4FD1C5"><animate attributeName="r" values="9;22" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.9;0" dur="2s" repeatCount="indefinite"/></circle>
+        <circle cx="1060" cy="330" r="7" fill="#4FD1C5"/>
+        <text x="1060" y="312" text-anchor="middle" fill="#E8E6E1">S4</text>
+      </g>
+    </g>
+
+    <!-- astronaut marker -->
+    <g filter="url(#glow)">
+      <circle r="6" fill="#E8E6E1">
+        <animateMotion dur="10s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6;1" keyPoints="0;1;1">
+          <mpath xlink:href="#route"/>
+        </animateMotion>
+      </circle>
+      <circle r="12" fill="none" stroke="#E8E6E1" stroke-opacity=".6">
+        <animateMotion dur="10s" repeatCount="indefinite" calcMode="linear" keyTimes="0;0.6;1" keyPoints="0;1;1">
+          <mpath xlink:href="#route"/>
+        </animateMotion>
+        <animate attributeName="r" values="8;16" dur="1.5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.8;0" dur="1.5s" repeatCount="indefinite"/>
+      </circle>
+    </g>
+
+    <!-- radar -->
+    <g transform="translate(1086 92)">
+      <circle r="30" fill="#0B0F14" stroke="#4FD1C5" stroke-opacity=".5"/>
+      <circle r="18" fill="none" stroke="#4FD1C5" stroke-opacity=".25"/>
+      <circle r="6" fill="none" stroke="#4FD1C5" stroke-opacity=".25"/>
+      <path d="M-30 0H30M0 -30V30" stroke="#4FD1C5" stroke-opacity=".2"/>
+      <g>
+        <path d="M0 0 L30 0 A30 30 0 0 0 21 -21 Z" fill="#4FD1C5" fill-opacity=".35"/>
+        <line x1="0" y1="0" x2="30" y2="0" stroke="#4FD1C5" stroke-width="2"/>
+        <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="4s" repeatCount="indefinite"/>
+      </g>
+    </g>
+
+    <!-- scale bar + compass labels -->
+    <g class="mono" font-size="10" fill="#E8E6E1" opacity=".7">
+      <path d="M584 384H664M584 380V388M664 380V388M624 382V386" stroke="#E8E6E1" stroke-width="1.5"/>
+      <text x="584" y="374">1 km</text>
+      <text x="1086" y="140" text-anchor="middle" fill="#4FD1C5">N</text>
+    </g>
+
+    <!-- panel header -->
+    <g class="mono" font-size="11" fill="#E8E6E1">
+      <text x="582" y="68" fill="#4FD1C5" letter-spacing="2">TACTICAL MAP</text>
+      <text x="582" y="86" opacity=".5">LAYERS: OPTICAL · SLOPE · THERMAL · GEOLOGY</text>
+    </g>
+  </g>
+
+  <!-- HUD corner brackets -->
+  <path class="bracket" d="M560 70 V40 H590"/>
+  <path class="bracket" d="M1110 40 H1140 V70"/>
+  <path class="bracket" d="M560 370 V400 H590"/>
+  <path class="bracket" d="M1110 400 H1140 V370"/>
+<metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTpmOTEwOTBlZC02ZTZmLTQ3NTgtYTYwMS0yNjRiZGYxOGY5YjkAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaM8YQnRfAky7JkRwVc3pItsAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpiY2VhMzYxNi1lYjdiLTQ4MTMtYThlZC0wZTJlMTMyMTMxOTNscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNonHleWgMKX//SZoZgcLgLPgAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggHIcppYW+yuyhQp1IHLoJPAt/eHVrkvW1lgTSXV7t6kekZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaAxU//LYoA8zgLvRROc0zkEAAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIFmwmD8UCEbOTQoVbUQLYjSzbGKBl/w4Cd3LZCZ4kOtaZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GTY3Zmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOmY5MTA5MGVkLTZlNmYtNDc1OC1hNjAxLTI2NGJkZjE4ZjliOS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmJjMzQ4MTAzLWU1YjYtNDdhYS04NTVmLTFkYjJiZDRkOGI5N3JjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCAchymlhb7K7KFCnUgcugk8C394dWuS9bWWBNJdXu3qR6JjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggDAP24BovsoZ4uV95CdC0bg2ajmbBH1Xirv7K8X4iJv6iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggoC3U5hIPJt8IR6PLoVO8GhFLbFlktj99X6d5UJdVQkB0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQIvyK6JTWYIJu5T6H8/lN+BgDFYzce9NLTUooHRkRWknXVY6WmGm3Widkw4bcvQdrOnk/lSx21RpA4cuB+Rx/Ls=</c2pa:manifest></metadata></svg>

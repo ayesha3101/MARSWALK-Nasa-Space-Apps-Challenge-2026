@@ -1,0 +1,128 @@
+{
+  "missionName": "Sol 1, EVA 1 — Gale Boxwork Expedition",
+  "astronauts": [
+    {
+      "id": "EV1",
+      "name": "CDR Sarah Thorne",
+      "role": "Lead Navigator & Geologist"
+    },
+    {
+      "id": "EV2",
+      "name": "PLT Leo Chen",
+      "role": "Systems Specialist & Rover Pilot"
+    }
+  ],
+  "rover": {
+    "name": "Ares-4 Pressurized Exploration Rover",
+    "status": "Nominal",
+    "dropPointStopId": "stop2"
+  },
+  "limits": {
+    "maxSuitSlopeDeg": 20.0,
+    "nominalO2Hours": 6.5,
+    "maxAllowedDoseRateUSv": 65.0,
+    "nominalBatteryKWh": 4.8
+  },
+  "waypoints": [
+    {
+      "id": "hab",
+      "name": "Airlock (Amundsen Hab)",
+      "role": "START_END",
+      "grid": [36, 42],
+      "targetTimeMin": 0,
+      "stayDurationMin": 0,
+      "pov": "hab_site.jpg",
+      "desc": "Primary habitat airlock egress onto baseline pebble regolith with low-slope exit vector.",
+      "science": "Suit seal integrity verification, baseline radiometer calibration, and primary navigation beacon handshake.",
+      "coordinates": [137.354595, -4.696675],
+      "mastcam": {
+        "sol": 300,
+        "targetName": "Bradbury Plains Basal Regolith",
+        "instrument": "Mast Camera (M-34 Wide Angle 34mm)",
+        "imageId": "0300ML0012490050106431D01",
+        "geology": "Deflation lag of basaltic gravels and pebbles over mudstone bedrock.",
+        "resolution": "1648 x 1200 pixels"
+      }
+    },
+    {
+      "id": "stop1",
+      "name": "Ridge Fracture Alpha",
+      "role": "SCIENCE_CORE",
+      "grid": [82, 95],
+      "targetTimeMin": 45,
+      "stayDurationMin": 25,
+      "pov": "stop1_boxwork_ridge.jpg",
+      "desc": "Exhumed hydrothermal mineral vein network intersecting the primary boxwork ridge crest.",
+      "science": "Micro-Raman spectroscopy of cross-cutting light-toned calcium-sulfate vein precipitates.",
+      "coordinates": [137.369798, -4.714131],
+      "mastcam": {
+        "sol": 938,
+        "targetName": "Garden City Hydrothermal Complex",
+        "instrument": "Mast Camera (M-100 Telephoto 100mm)",
+        "imageId": "0938MR0041190580501896C00",
+        "geology": "Two-generation mineral fracture fillings standing in high relief after wind erosion.",
+        "resolution": "1344 x 1200 pixels"
+      }
+    },
+    {
+      "id": "stop2",
+      "name": "Rover Drop / Deep Core",
+      "role": "ROVER_RENDEZVOUS",
+      "grid": [140, 148],
+      "targetTimeMin": 105,
+      "stayDurationMin": 30,
+      "pov": "stop2_rover_drop.jpg",
+      "desc": "Flat bedrock terrace rendezvous with autonomous rover; pneumatic drill core sampling.",
+      "science": "Pneumatic 1.5m drill core into unweathered high-silica phyllosilicate strata.",
+      "coordinates": [137.388966, -4.731587],
+      "mastcam": {
+        "sol": 1065,
+        "targetName": "Buckskin Bedrock Drill Site",
+        "instrument": "Mast Camera (M-100 Telephoto 100mm)",
+        "imageId": "1065MR0046870540104892C00",
+        "geology": "Tridymite-rich layered bedrock displaying grey drill powder tailings and rover tracks.",
+        "resolution": "1344 x 1200 pixels"
+      }
+    },
+    {
+      "id": "stop3",
+      "name": "Boxwork Polygon Hollow",
+      "role": "SAMPLE_CACHE",
+      "grid": [195, 115],
+      "targetTimeMin": 165,
+      "stayDurationMin": 20,
+      "pov": "stop3_hollow_floor.jpg",
+      "desc": "Protected depression enclosed by polygonal ridge walls containing active basalt ripples.",
+      "science": "Grain-size distribution profiling and volatile release analysis of coarse eolian ripples.",
+      "coordinates": [137.407143, -4.720718],
+      "mastcam": {
+        "sol": 1192,
+        "targetName": "Bagnold Dune Field Ripple Complex",
+        "instrument": "Mast Camera (M-34 Wide Angle 34mm)",
+        "imageId": "1192MR0054130000602629E01",
+        "geology": "Eolian basaltic deflation sand ripples surrounded by boxwork polygon crests.",
+        "resolution": "1152 x 1152 pixels"
+      }
+    },
+    {
+      "id": "stop4",
+      "name": "Sulfate Ridge Escarpment",
+      "role": "HIGH_ELEVATION",
+      "grid": [155, 62],
+      "targetTimeMin": 220,
+      "stayDurationMin": 20,
+      "pov": "stop4_sulfate_escarpment.jpg",
+      "desc": "High vantage point on prominent escarpment ridge overlooking Mount Sharp sulfate stratigraphy.",
+      "science": "Stereoscopic photogrammetry of cross-bedded eolian sandstone and regional fault contacts.",
+      "coordinates": [137.393923, -4.703262],
+      "mastcam": {
+        "sol": 1450,
+        "targetName": "Murray Buttes Stratigraphic Escarpment",
+        "instrument": "Mast Camera (M-100 Telephoto 100mm)",
+        "imageId": "1450MR0071830350703259C00",
+        "geology": "Towering layered sandstone and sulfate-bearing mesa standing 15 meters above crater floor.",
+        "resolution": "1344 x 1200 pixels"
+      }
+    }
+  ]
+}

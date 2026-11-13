@@ -1,0 +1,22 @@
+{
+  "name": "MARSWALK — EVA Planning HUD",
+  "short_name": "MARSWALK",
+  "description": "Extravehicular Activity Planning & Telemetry System for Gale Crater, Mars",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#07090D",
+  "theme_color": "#07090D",
+  "categories": ["education", "navigation", "science"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "lang": "en",
+  "dir": "ltr"
+}

@@ -1,133 +1,280 @@
-# MARSWALK // Extravehicular Activity (EVA) Planning & Telemetry HUD
-**NASA Space Apps Challenge 2026**
-*Pitch: "Google Maps for the first Marswalk, but it knows slope, radiation, dust, and your oxygen."*
+<div align="center">
+
+# 🪐 MARSWALK
+
+### Extravehicular Activity (EVA) Planning & Telemetry HUD for Mars
+
+*Google Maps for the first Marswalk, but it knows slope, radiation, dust, and your oxygen.*
+
+[![NASA Space Apps 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-E2572B?style=for-the-badge)](https://www.spaceappschallenge.org/)
+[![React](https://img.shields.io/badge/React-18-4FD1C5?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8?style=for-the-badge)](#-offline--pwa)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#-license)
+
+[**Live Demo**](https://YOUR-DEMO-LINK) · [**Demo Video**](https://YOUR-VIDEO-LINK) · [**Methodology**](./METHODOLOGY.md) · [**Report a Bug**](https://github.com/YOUR-USERNAME/marswalk/issues)
+
+<img src="./docs/marswalk-hero.svg" alt="MARSWALK animated banner: an EVA route drawing itself across Martian terrain with live telemetry" width="100%" />
+
+</div>
 
 ---
 
-## 🚀 Hero Mission: Gale Crater Mount Sharp Boxwork (Sol 1, EVA 1)
-- **Site:** Gale Crater / lower Mount Sharp (Aeolis Mons), boxwork quadrant (~5×5 km, centered at ~4.725° S, 137.385° E).
-- **Mission:** A 4-stop tactical traverse from the habitat airlock to study mineralized boxwork ridges, hollow basins, and rendezvous with an autonomous pressurized exploration rover before returning to base.
-- **Astronauts:** CDR Sarah Thorne (Lead Navigator/Geologist) & PLT Leo Chen (Systems/Rover Specialist).
+## Table of Contents
+
+- [Overview](#-overview)
+- [Hero Mission](#-hero-mission)
+- [Features](#-features)
+- [Data & Provenance](#-data--provenance)
+- [Architecture](#-architecture)
+- [Getting Started](#-getting-started)
+- [Route Engine](#-route-engine)
+- [Offline & PWA](#-offline--pwa)
+- [Assumptions & Limitations](#-assumptions--limitations)
+- [Project Structure](#-project-structure)
+- [Roadmap](#-roadmap)
+- [Credits](#-credits)
+- [License](#-license)
 
 ---
 
-## 🌟 Key Capabilities & Features
+## 🔭 Overview
 
-1. **Slope-Aware A* Route Engine (Web Worker):**
-   - High-performance bi-directional pathfinding across a 256×256 elevation cost grid (19.53m/cell).
-   - Strict 20° slope suit-mobility barrier (slopes >20° are impassable).
-   - Instant "Safest vs Fastest" cost optimization.
-   - Interactive waypoint drag-and-drop with live path recalculation in `<30ms`.
+NASA has mapped Mars for decades, but existing tools such as Mars Trek and the USGS-NASA geologic maps are built for regional and global views. Astronauts on a surface excursion need something different: a **hyperlocal, layered, safety-first view** of the exact ground they will walk.
 
-2. **Multi-Spectral & Geophysical Layer Blending:**
-   - 8 animated layers with independent opacity sliders and CSS blend modes:
-     1. Optical Base (HiRISE / CTX)
-     2. Topography / Hillshade (DEM Shaded Relief)
-     3. Slope Map (0–8° Safe, 8–15° Caution, 15–20° Steep, >20° Blocked)
-     4. THEMIS Thermal Inertia (Heat retention of exhumed bedrock)
-     5. CRISM Mineralogy (Hydrated Mg-sulfates, smectite clays, hematite)
-     6. USGS Geologic Units (USGS SIM-3482 lower Mount Sharp units)
-     7. Hazard Exclusion Mask (Cliffs, high roughness, scarps)
-     8. In-situ Radiation & Weather (MSL RAD & REMS real-time telemetry)
+**MARSWALK** is a tablet/HUD-style mission tool that fuses multiple NASA science datasets into a single interface for planning and executing a Mars surface EVA. It calculates slope-safe routes between science stops, tracks life-support budgets across the whole traverse, and surfaces the environmental hazards that matter most: slope, radiation, dust, and temperature.
 
-3. **Interactive 2D & 3D Dual-Engine:**
-   - **2D Tactical Map:** MapLibre GL JS raster engine with custom SVG/Canvas vector overlays.
-   - **3D Terrain Flyover:** React Three Fiber / Three.js heightmap displacement mesh with draped routes, 3D waypoint pins, and cinematic orbit controls.
-
-4. **Dynamic EVA Timeline Scrubber & Life Support Telemetry:**
-   - Real-time simulation of the 3+ hour traverse at 1x, 5x, or 20x speeds.
-   - Dynamic biophysical depletion modeling:
-     - Oxygen reserves (primary & secondary buffers, Santee metabolic burn equation)
-     - Suit battery state of charge (4.8 kWh budget)
-     - Core suit temperature (°C)
-     - Cumulative radiation exposure (µSv)
-     - Active hazard alerts at safety thresholds
-
-5. **Safety Systems & "ABORT TO HAB":**
-   - Emergency Return button: immediately plots the shortest, slope-safe escape vector back to the habitat airlock from the astronaut's active scrubber position.
-
-6. **Tactical Spacesuit HUD Ergonomics:**
-   - **Glove Mode:** Single-click toggle for oversized touch targets (52px+), amplified contrast, and simplified layout for pressurized suit gloves.
-   - **Voice Navigation (Web Speech API):** Synthesized helmet/wrist audio readout of waypoints and hazard warnings.
-   - **Surface Recon POV Cards:** High-resolution Mastcam photo preview and scientific directives for each stop.
-   - **Data Honesty & Provenance Modal:** Explicit breakdown of real instruments vs simulated placeholders. Never fake silently.
-   - **Printable EVA Manifest (PDF):** One-click generation of flight hardcopy with waypoints, distances, dwell times, and contingency plans.
+Built for the **2026 NASA Space Apps Challenge**, *Mars surface exploration map* category.
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## 🚀 Hero Mission
+
+| | |
+|---|---|
+| **Site** | Gale Crater / lower Mount Sharp (Aeolis Mons), boxwork region |
+| **Area** | ~5 × 5 km, centred near 4.725° S, 137.385° E |
+| **Mission** | Sol 1, EVA 1: a 4-stop loop from the habitat airlock to study mineralized boxwork ridges and hollows, with a rendezvous at a pressurized rover, then return to base |
+| **Crew** | Two fictional astronauts (CDR Sarah Thorne, PLT Leo Chen) used for the mission narrative |
+
+Gale was chosen because Curiosity has studied the boxwork region in depth, giving us rich imagery and in-situ data to ground the plan in.
+
+---
+
+## ✨ Features
+
+### 🥾 Slope-Aware Route Engine
+- A\* pathfinding on a 256 × 256 cost grid (≈19.5 m per cell) running in a **Web Worker**, so the UI never blocks
+- Hard **20° slope limit** for suited mobility (configurable, see [Assumptions](#-assumptions--limitations))
+- **Safest vs Fastest** modes that re-weight the cost function
+- Drag any waypoint and the route recalculates live
+
+### 🗺️ Eight Blendable Data Layers
+Independent opacity sliders and blend modes, with animated cross-fades:
+
+| # | Layer | What it shows |
+|---|---|---|
+| 1 | Optical | CTX / HiRISE imagery base map |
+| 2 | Topography | DEM hillshade / shaded relief |
+| 3 | Slope | 0–8° safe · 8–15° caution · 15–20° steep · >20° blocked |
+| 4 | Thermal | THEMIS thermal inertia (bedrock vs dust) |
+| 5 | Mineralogy | CRISM-derived sulfates, clays, hematite zones |
+| 6 | Geology | USGS geologic units for lower Mount Sharp |
+| 7 | Hazards | Cliffs, scarps and high-roughness exclusion mask |
+| 8 | Environment | MSL RAD and REMS reference values |
+
+### 🏔️ 2D + 3D Dual Engine
+- **2D tactical map** with MapLibre GL JS and vector route overlays
+- **3D terrain flyover** with React Three Fiber, a displaced DEM mesh, a draped route, and cinematic orbit controls
+
+### ⏱️ EVA Timeline & Life-Support Telemetry
+Play the full 3+ hour traverse at 1×, 5× or 20× speed while the HUD tracks:
+- Oxygen reserves (primary and secondary buffers)
+- Suit battery state of charge
+- Core suit temperature
+- Cumulative radiation dose
+- Threshold-based hazard alerts
+
+### 🚨 Abort to Hab
+One tap plots the shortest slope-safe return path from the astronaut's **current timeline position** back to the airlock.
+
+### 🧤 Suit-Ready Ergonomics
+- **Glove Mode:** oversized touch targets (52 px+), high contrast, simplified layout
+- **Voice readout:** waypoint and hazard announcements via the Web Speech API
+- **Surface POV cards:** real Curiosity Mastcam photos and science objectives for each stop
+- **Printable EVA manifest:** one-click PDF with waypoints, distances, dwell times and contingencies
+
+### 🔍 Data Honesty
+Every layer carries a **REAL / DERIVED / SIMULATED** badge, and a provenance modal lists each source. Nothing is faked silently.
+
+---
+
+## 🧪 Data & Provenance
+
+| Layer / Instrument | Mission & Source | Resolution | Status |
+|---|---|---|---|
+| CTX Optical | MRO Context Camera mosaic of Gale | ~6 m/px | 🟢 REAL |
+| Topography | MOLA (Mars Global Surveyor) with Gale DTM | see METHODOLOGY | 🟢 REAL |
+| THEMIS Night IR | 2001 Mars Odyssey, controlled mosaic | 100 m/px | 🟢 REAL |
+| Mastcam imagery | MSL Curiosity, NASA PDS raw images | 1152–1648 px | 🟢 REAL |
+| Slope | Sobel gradient computed from the DEM | 19.53 m/cell | 🔵 DERIVED |
+| Roughness & hazards | Computed from DEM and geologic units | 19.53 m/cell | 🔵 DERIVED |
+| CRISM mineralogy | MRO CRISM-based mineral indicators | ~18 m/cell | 🔵 DERIVED |
+| Geologic units | USGS-NASA Planetary Geologic Mapping | vector | 🟢 REAL |
+| Radiation & weather | Published MSL RAD / REMS reference values | n/a | 🟡 REFERENCE VALUES |
+| Crew physiology, O₂ and power budgets | Engineering model (see METHODOLOGY) | n/a | 🟠 MODELLED |
+
+> Any layer that cannot be sourced from official data is shown with a visible **SIMULATED** badge in the app.
+
+---
+
+## 🏗️ Architecture
 
 ```
-+-------------------------------------------------------------------------+
-|                              MARSWALK HUD                               |
-|  React 18 + Vite 5 + TypeScript + Tailwind CSS + Framer Motion          |
-+------------------------------------+------------------------------------+
-|            2D CARTOGRAPHY          |             3D FLYOVER             |
-|          MapLibre GL JS            |   Three.js + React Three Fiber     |
-+------------------------------------+------------------------------------+
-|                         STATE MANAGEMENT                                |
-|          Zustand (Mission, Route, Layers, Timeline, HUD)                |
-+------------------------------------+------------------------------------+
-|                     BACKGROUND WEB WORKER                               |
-|          A* Slope & Metabolic Solver (No UI Jank / 60 FPS)              |
-+------------------------------------+------------------------------------+
-|                    STATIC OFFLINE DATA PIPELINE                         |
-|     /public/data: 256x256 DEM, Slope, Hillshade, Thermal, Minerals     |
-+-------------------------------------------------------------------------+
+┌─────────────────────────────────────────────────────────────┐
+│                       MARSWALK HUD                          │
+│   React 18 · Vite · TypeScript · Tailwind · Framer Motion   │
+├──────────────────────────────┬──────────────────────────────┤
+│        2D CARTOGRAPHY        │          3D FLYOVER          │
+│         MapLibre GL          │   Three.js · React Three     │
+│                              │            Fiber             │
+├──────────────────────────────┴──────────────────────────────┤
+│                      STATE (Zustand)                        │
+│        Mission · Route · Layers · Timeline · HUD            │
+├─────────────────────────────────────────────────────────────┤
+│                  BACKGROUND WEB WORKER                      │
+│          A* slope-aware solver · life-support model         │
+├─────────────────────────────────────────────────────────────┤
+│                 STATIC OFFLINE DATA BUNDLE                  │
+│     /public/data: DEM · slope · hillshade · thermal · …     │
+└─────────────────────────────────────────────────────────────┘
+        ▲
+        │  built offline by
+   Python pipeline (/scripts): rasterio · numpy · scipy · Pillow
 ```
+
+**Design principle:** all heavy data processing happens offline in Python. The app only loads small, pre-built files, so it is fast, deterministic and demo-proof.
 
 ---
 
-## 📦 Getting Started
+## ⚡ Getting Started
 
 ### Prerequisites
-- Node.js >= 18.x (v20+ recommended)
-- Python 3.9+ (for regenerating datasets with numpy, scipy, Pillow)
+- Node.js 18+ (20+ recommended)
+- Python 3.9+ *(only needed to regenerate datasets)*
 
-### Quick Run
+### Run locally
 ```bash
-# 1. Clone & install dependencies
-git clone https://github.com/nasa-spaceapps/marswalk.git
+git clone https://github.com/YOUR-USERNAME/marswalk.git
 cd marswalk
 npm install
 
-# 2. Run unit tests
-npm test
-
-# 3. Start development server
-npm run dev
-# Open http://localhost:5173
+npm test          # unit tests (A* solver, slope calc)
+npm run dev       # http://localhost:5173
 ```
 
-### Production Build & Offline Preview
+### Production build & offline preview
 ```bash
 npm run build
 npm run preview
 ```
 
-### Python Data Preprocessing Pipeline
-To regenerate the DEM matrix, hillshade, slope rasters, and synthetic layers:
+### Test on your phone
+```bash
+npm run dev -- --host
+```
+Then open the printed network URL on a device on the same Wi-Fi.
+
+### Regenerate the data bundle
 ```bash
 cd scripts
+pip install -r requirements.txt
 python generate_terrain_data.py
 ```
 
 ---
 
-## 🧪 Scientific Rigor & Data Provenance
+## 🧭 Route Engine
 
-| Instrument | Mission / Provenance | Resolution | Status |
-|---|---|---|---|
-| CTX Optical | MRO Context Camera (`Gale_CTX_BlockAdj_dd`) | 6.0 m/px | REAL NASA MOSAIC |
-| MOLA Topography | Mars Global Surveyor MOLA + Gale DTM | 463 m / cell blended | REAL NASA MOLA |
-| THEMIS Night IR | 2001 Mars Odyssey (`THEMIS_NightIR_ControlledMosaics_100m_v2`) | 100 m/px | REAL NASA THEMIS |
-| Mastcam (M-34 / M-100)| MSL Curiosity Sols 300, 938, 1065, 1192, 1450 | 1152 - 1648 px raw | REAL NASA PDS RAW |
-| Slope Operator | Sobel Bidirectional Gradient | 19.53 m/cell | COMPUTED ALGORITHM |
-| CRISM Mineralogy | MRO Hyperspectral Imager & ChemCam ground truth | 18 m/cell | DERIVED / VERIFIED |
-| USGS Geologic Map | USGS SIM-3482 Lower Mount Sharp Boxwork | Vector/Raster | USGS MAPPED |
-| MSL RAD & REMS | Curiosity Mars Science Laboratory | In-situ telemetry | REAL BASELINE |
+For each grid cell the solver uses:
+
+```
+cost = 1 + slope_penalty + roughness_penalty + radiation_penalty + hazard_penalty
+```
+
+- Cells above the **slope limit** (default 20°) or inside the **hazard mask** are impassable
+- **Fastest** mode weights distance and time; **Safest** mode weights slope, roughness and dose more heavily
+- Legs are chained as `Hab → S1 → S2 → S3 → S4 → Hab` and reported with distance, max slope, time, O₂ use and dose
+
+Full details are in [METHODOLOGY.md](./METHODOLOGY.md).
+
+---
+
+## 📴 Offline & PWA
+
+MARSWALK is installable and works with no network. A service worker caches the full data bundle, which matters for a tool meant to be used far from home.
+
+---
+
+## ⚠️ Assumptions & Limitations
+
+We state these openly because planning tools are only as trustworthy as their assumptions.
+
+- **Slope limit (20°)** is an engineering assumption for suited mobility, not a NASA-certified value
+- **Life-support models** (oxygen, power, thermal) are simplified estimates for demonstration
+- **Radiation and weather** use published reference values, not live Mars data
+- **Resolution:** route accuracy is bounded by the DEM cell size (~19.5 m); real EVA planning would use sub-metre HiRISE DTMs
+- **Crew and mission** are fictional and for illustration only
+- This is a hackathon prototype and is **not** flight software
+
+---
+
+## 📁 Project Structure
+
+```
+marswalk/
+├── public/data/        # pre-built DEM, slope, hillshade, thermal, mineral layers
+├── scripts/            # Python data pipeline
+├── src/
+│   ├── components/     # HUD panels, gauges, bottom sheets
+│   ├── map/            # MapLibre layers and overlays
+│   ├── three/          # 3D terrain flyover
+│   ├── workers/        # A* solver and life-support model
+│   ├── store/          # Zustand state
+│   └── styles/         # design tokens
+├── tests/              # solver and slope tests
+├── METHODOLOGY.md
+└── README.md
+```
+
+---
+
+## 🗓️ Roadmap
+
+- [ ] Sub-metre HiRISE DTM tiles for finer routing
+- [ ] Multi-site support (e.g. Jezero) via a config-driven site registry
+- [ ] Multi-astronaut and rover coordination
+- [ ] Space-weather and solar particle event overlays
+- [ ] Heads-up display mode for helmet visors
+
+---
+
+## 🙏 Credits
+
+Built with data and tools from:
+
+- **NASA / JPL** [Mars Trek](https://trek.nasa.gov/mars/)
+- **USGS-NASA** [Planetary Geologic Mapping Program](https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars)
+- **NASA** Curiosity and Perseverance raw image archives
+- **NASA** [Curiosity's proposed path up Mount Sharp](https://science.nasa.gov/resource/curiositys-proposed-path-up-mount-sharp/)
+- Missions and instruments: MRO (CTX, HiRISE, CRISM), Mars Odyssey (THEMIS), Mars Global Surveyor (MOLA), MSL (Mastcam, RAD, REMS)
+
+*This project is not affiliated with or endorsed by NASA.*
+
+**Team:** _Your name(s) here_
 
 ---
 
 ## 📜 License
-Developed for NASA Space Apps Challenge 2026. Released under the MIT License.
+
+Released under the [MIT License](./LICENSE). NASA and USGS data remain subject to their respective usage and attribution policies.

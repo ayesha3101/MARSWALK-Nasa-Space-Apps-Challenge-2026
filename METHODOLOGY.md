@@ -1,105 +1,309 @@
-# MARSWALK: Mathematical Methodology & Biophysical Route Modeling
-**Tactical Navigation & Consumable Optimization for Gale Crater Boxwork (Sol 1, EVA 1)**
+# MARSWALK Methodology
+
+**Slope-aware route planning and consumables modelling for a Mars surface EVA**
+Hero mission: Gale Crater / lower Mount Sharp, boxwork region (Sol 1, EVA 1)
 *NASA Space Apps Challenge 2026*
 
 ---
 
-## 1. Overview & Operational Problem
-Planning an Extravehicular Activity (EVA) on Mars is a multi-objective optimization problem under life-critical constraints. An astronaut in an Exploration Extravehicular Mobility Unit (xEMU) encounters terrain slope limits, metabolic oxygen depletion, cumulative radiation exposure, and mechanical suit stiffness. 
+## Contents
 
-A traditional Euclidean "shortest path" often routes across sheer ridge faces, inducing catastrophic slip hazards or unmanageable metabolic spikes ($>300 \text{ kcal/hr}$). MARSWALK solves this by computing a slope-aware, biophysically constrained A* trajectory across a 19.53 m/cell digital elevation model (DEM) of lower Mount Sharp.
-
----
-
-## 2. Terrain Cost Grid & Pathfinding Function
-
-The traversal cost $C(A, B)$ of stepping from cell $A$ to an adjacent 8-connected cell $B$ is defined as:
-
-$$C(A, B) = d_{xy}(A, B) \times \left[ 1.0 + w_{\text{slope}} \cdot \phi(\theta) + w_{\text{climb}} \cdot \max(0, \Delta z) + w_{\text{rad}} \cdot \Psi(z, \theta) + H \right]$$
-
-### 2.1 Spatial Distance $d_{xy}(A, B)$
-For grid coordinates $(x_A, y_A)$ and $(x_B, y_B)$ with cell resolution $\Delta s = 19.53\text{ m}$:
-$$d_{xy}(A, B) = \begin{cases} 
-\Delta s & \text{orthogonal steps } (\Delta x = 0 \text{ or } \Delta y = 0) \\
-\sqrt{2} \cdot \Delta s \approx 27.62\text{ m} & \text{diagonal steps}
-\end{cases}$$
-
-### 2.2 Slope Angle $\theta$ and Suit Mobility Barrier
-The terrain inclination angle $\theta$ in degrees is derived from the bidirectional Sobel elevation gradient:
-$$\theta = \arctan\left(\frac{\sqrt{(\partial z / \partial x)^2 + (\partial z / \partial y)^2}}{\Delta s}\right) \times \frac{180^\circ}{\pi}$$
-
-**The 20° Suit Mobility Barrier:**
-Pressurized planetary suits have rigid lower-torso assemblies (LTA) and limited ankle articulation. Field analog testing (NASA Desert RATS and Apollo lunar telemetry) indicates unassisted suit walking becomes unstable above $20^\circ$.
-$$\phi(\theta) = \begin{cases} 
-\infty & \text{if } \theta > \theta_{\text{max}} \quad (20.0^\circ \text{ suit barrier: cell is impassable}) \\
-\left(\frac{\theta}{\theta_{\text{max}}}\right)^2 & \text{if } \theta \le \theta_{\text{max}}
-\end{cases}$$
-
-### 2.3 Safest vs. Fastest Cost Weights
-- **Safest Mode:** $w_{\text{slope}} = 4.8$, $\theta_{\text{max}} = 16.0^\circ$. Strictly favors low-grade valley floors, avoiding ridge cliffs even if traversal distance is increased by 15–25%.
-- **Fastest Mode:** $w_{\text{slope}} = 1.3$, $\theta_{\text{max}} = 20.0^\circ$. Direct metabolic minimum vector between waypoints.
+1. [Scope and approach](#1-scope-and-approach)
+2. [Terrain data and grid](#2-terrain-data-and-grid)
+3. [Slope analysis](#3-slope-analysis)
+4. [Route cost model](#4-route-cost-model)
+5. [Routing modes and abort logic](#5-routing-modes-and-abort-logic)
+6. [Metabolic and oxygen model](#6-metabolic-and-oxygen-model)
+7. [Radiation model](#7-radiation-model)
+8. [Solar ephemeris and irradiance](#8-solar-ephemeris-and-irradiance)
+9. [Surface imagery and image enhancement](#9-surface-imagery-and-image-enhancement)
+10. [Parameter register](#10-parameter-register)
+11. [Assumptions, validation and limitations](#11-assumptions-validation-and-limitations)
+12. [Reproducibility](#12-reproducibility)
+13. [References](#13-references)
 
 ---
 
-## 3. Biophysical Metabolic Model (Santee & Margaria-Minetti)
+## 1. Scope and approach
 
-Astronaut oxygen consumption ($\dot{V}_{\text{O}_2}$ in $\text{L/min}$) and energy expenditure ($P$ in $\text{kcal/hr}$) are calculated dynamically for every step along the route based on suit weight and local incline:
+Planning a surface EVA is a multi-objective problem: a crew must reach science targets while respecting mobility limits, consumable budgets (oxygen, power) and radiation exposure. A straight-line route can cross terrain that is too steep for a pressurized suit or that costs far more oxygen than a longer, gentler path.
 
-$$\dot{V}_{\text{O}_2}(\theta, v) = \dot{V}_{\text{rest}} + \dot{V}_{\text{walk}}(v) \cdot \left[1.0 + f_{\text{incline}}(\theta)\right]$$
+MARSWALK addresses this with three components:
 
-Where:
-- $\dot{V}_{\text{rest}} = 0.82\text{ L/min}$ (baseline suit life support demand at rest).
-- Effective weight on Mars ($g_{\text{Mars}} = 3.72\text{ m/s}^2$): $m_{\text{total}} = 140\text{ kg} \implies W_{\text{Mars}} \approx 520\text{ N}$.
-- Walking speed $v(\theta)$ is governed by Tobler's Martian hiking formula:
-  $$v(\theta) = 1.05 \cdot \exp\left(-3.5 \cdot \left|\tan(\theta) + 0.05\right|\right) \quad [\text{m/s}]$$
-- Incline factor $f_{\text{incline}}(\theta)$:
-  $$f_{\text{incline}}(\theta) = \begin{cases}
-  3.2 \cdot \left(\frac{\theta}{20.0}\right)^{1.85} & \text{for uphill climbs } (\theta \ge 0) \\
-  -0.25 \cdot \left(\frac{|\theta|}{9.0}\right) & \text{for gentle downhill } (-9^\circ \le \theta < 0) \\
-  0.15 \cdot \left(\frac{|\theta| - 9.0}{11.0}\right) & \text{for steep downhill braking } (\theta < -9^\circ)
-  \end{cases}$$
+1. **A terrain cost grid** derived from a digital elevation model (DEM).
+2. **An A\* route solver** that minimizes a weighted cost over that grid.
+3. **A consumables and exposure model** that converts a chosen route into time, oxygen use and dose estimates.
 
-Total consumed oxygen across $N$ path segments with dwell times $t_{\text{dwell}}$:
-$$\text{O}_2^{\text{total}} = \sum_{k=1}^{N} \left(\frac{\dot{V}_{\text{O}_2, k}}{60} \cdot \Delta t_k\right) + \left(\frac{0.82}{60} \cdot t_{\text{dwell}}\right) \quad [\text{Liters}]$$
+> **Status labels used in this document**
+> **Published:** taken from a cited source. **Derived:** computed from data in this project. **Assumption:** an engineering choice made for this prototype and open to change.
+> This is a demonstration tool, not flight software. All physiological and suit parameters are assumptions unless marked otherwise.
 
 ---
 
-## 4. Radiation Exposure Model (MSL RAD Baseline)
+## 2. Terrain data and grid
 
-Surface radiation dose rate $\dot{D}$ in $\mu\text{Sv/h}$ is modeled using empirical in-situ measurements from Curiosity's Radiation Assessment Detector (RAD):
-$$\dot{D}(z, \theta) = \left[\dot{D}_0 + \alpha_{\text{elev}} \cdot \frac{z - z_0}{100\text{ m}}\right] \cdot S_{\text{ridge}}(\theta)$$
+| Item | Value | Status |
+|---|---|---|
+| Area of interest | about 5 × 5 km around the boxwork region | Derived |
+| Grid size | 256 × 256 cells | Derived |
+| Cell size, Δs | 19.53 m (5 km / 256) | Derived |
+| Connectivity | 8-connected neighbours | Design choice |
+| Elevation source | MOLA-based topography with Gale DTM, resampled to the grid | Published, resampled |
 
-Where:
-- $\dot{D}_0 = 27.2\ \mu\text{Sv/h}$ (Galactic Cosmic Ray floor baseline at Gale datum $z_0 = -4450\text{ m}$, equivalent to $\approx 0.65\text{ mSv/sol}$).
-- Atmospheric shielding gradient: $\alpha_{\text{elev}} = 0.75\ \mu\text{Sv/h per 100m}$ ascent (thinner Martian atmosphere at higher elevations provides less column shielding).
-- Ridge shielding factor $S_{\text{ridge}}(\theta) = 0.88$ if the path travels along the base of a $>10^\circ$ boxwork wall oriented away from solar particle events.
-
----
-
-## 5. Emergency Abort Algorithm ("ABORT TO HAB")
-When the astronaut or flight controller engages the emergency return protocol:
-1. The system captures the astronaut's active coordinate $[x_{\text{curr}}, y_{\text{curr}}]$ from the telemetry state.
-2. The Web Worker immediately executes a prioritized A* solver targeting the pressurized habitat airlock $[x_{\text{hab}}, y_{\text{hab}}]$.
-3. Maximum slope threshold is clamped to $15.0^\circ$ to prevent running-speed slips, and the shortest non-hazardous vector is dynamically overlaid on the HUD with distance-to-go and estimated time-to-ingress.
+All rasters (elevation, slope, hazard mask, cost components) are precomputed offline by the Python pipeline in `/scripts` and shipped as static files. The browser never processes raw planetary data.
 
 ---
 
-## 6. Gale Crater Solar Ephemeris & Surface Irradiance Model
-Astronomical positioning for Gale Crater ($-4.5895^\circ\text{ S}, 137.4417^\circ\text{ E}$) calculates Local Mean Solar Time (LMST), solar elevation angle $\alpha_s$, solar azimuth $\theta_s$, and direct surface flux irradiance $I_{\text{surface}}$ ($W/m^2$):
+## 3. Slope analysis
 
-$$\sin(\alpha_s) = \sin(\phi) \sin(\delta) + \cos(\phi) \cos(\delta) \cos(h)$$
+Slope angle θ is computed from the DEM with a Sobel operator. With kernel responses $S_x$, $S_y$ and the standard 3 × 3 normalization:
 
-$$I_{\text{surface}} = S_0 \cdot \max(0, \sin(\alpha_s)) \cdot \exp\left( -\frac{\tau}{\max(0.12, \sin(\alpha_s))} \right)$$
+$$
+\frac{\partial z}{\partial x} = \frac{S_x}{8\,\Delta s}, \qquad
+\frac{\partial z}{\partial y} = \frac{S_y}{8\,\Delta s}
+$$
 
-Where:
-- $S_0 = 590\ W/m^2$ (Mars solar constant at $1.52\text{ AU}$).
-- $\tau = 0.65$ (optical depth measured by MSL REMS UV sensor).
-- Declination $\delta$ derived from Mars solar longitude $L_s = 70.0^\circ$ and obliquity $\epsilon = 25.19^\circ$.
+$$
+\theta = \arctan\!\left(\sqrt{\left(\tfrac{\partial z}{\partial x}\right)^2 + \left(\tfrac{\partial z}{\partial y}\right)^2}\right) \cdot \frac{180^\circ}{\pi}
+$$
+
+**Mobility limit.** Cells steeper than a configured limit θ\_max are treated as impassable. The default of 20° is an **assumption** reflecting the reduced stability of suited walking on steep ground, and is not a certified NASA value. Because a 19.5 m cell averages out small features, real local slopes can exceed the gridded value.
+
+**Slope classes shown in the UI**
+
+| Class | Range | Display |
+|---|---|---|
+| Safe | 0° to 8° | Green |
+| Caution | 8° to 15° | Amber |
+| Steep | 15° to 20° | Orange |
+| Blocked | above 20° | Red, excluded from routing |
 
 ---
 
-## 7. Curiosity Mastcam Science Reconnaissance & Band Math
-Each waypoint is matched with authentic Curiosity Mastcam raw observations from the NASA Planetary Data System (PDS):
-- **Mastcam-34 (M-34):** 34mm focal length, $f/8$, $15^\circ \times 15^\circ$ field of view, $0.22\text{ mrad/pixel}$ (used for Hab egress landscape and Bagnold dune ripple field).
-- **Mastcam-100 (M-100):** 100mm focal length telephoto, $f/10$, $5.1^\circ \times 5.1^\circ$ field of view, $0.074\text{ mrad/pixel}$ (used for Garden City hydrothermal boxwork veins, Buckskin drill core, and Murray Buttes sulfate escarpment).
-- **Multispectral Enhancement:** Interactive Decorrelation Stretch (D-Stretch) and 1013nm near-infrared band ratio simulation to highlight iron oxide precipitates and sulfate veins.
+## 4. Route cost model
+
+The cost of moving from cell A to an adjacent cell B is:
+
+$$
+C(A,B) = d_{xy}(A,B)\,\Big[\,1 + w_{\text{slope}}\,\phi(\theta) + w_{\text{climb}}\,\max(0,\Delta z) + w_{\text{rad}}\,\Psi + H\,\Big]
+$$
+
+| Term | Meaning |
+|---|---|
+| $d_{xy}$ | Horizontal step length: Δs for orthogonal moves, √2·Δs ≈ 27.62 m for diagonal moves |
+| $\phi(\theta)$ | Slope penalty (below) |
+| $\Delta z$ | Elevation gain of the step, in metres |
+| $\Psi$ | Relative radiation penalty, the dose-rate excess over the baseline, $\Psi = \dot D(z,\theta)/\dot D_0 - 1$ |
+| $H$ | Hazard penalty from the roughness and geologic-unit mask; cells inside the hard exclusion mask are impassable |
+| $w_{\bullet}$ | Weights set by the routing mode |
+
+The slope penalty grows quadratically and becomes infinite at the mobility limit:
+
+$$
+\phi(\theta) =
+\begin{cases}
+\left(\dfrac{\theta}{\theta_{\max}}\right)^{2} & \theta \le \theta_{\max} \\[2mm]
+\infty & \theta > \theta_{\max}
+\end{cases}
+$$
+
+Weights $w_{\text{climb}}$, $w_{\text{rad}}$ and the hazard penalties are defined in the routing configuration in the source code.
+
+---
+
+## 5. Routing modes and abort logic
+
+### 5.1 Pathfinding
+
+Routes are found with **A\*** using an admissible Euclidean-distance heuristic scaled by the minimum per-metre cost (1.0), so solutions are optimal for the cost model above. The solver runs in a **Web Worker** so the interface stays responsive while waypoints are dragged. Multi-stop routes are built by chaining legs:
+`Hab → S1 → S2 → S3 → S4 → Hab`.
+
+### 5.2 Modes
+
+| Mode | $w_{\text{slope}}$ | $\theta_{\max}$ | Intent |
+|---|---|---|---|
+| **Fastest** | 1.3 | 20° | Minimize time and effort between waypoints |
+| **Safest** | 4.8 | 16° | Prefer gentle ground, even at the cost of a longer path |
+
+Safest mode is designed to trade a modest increase in distance for lower slope exposure. The actual trade-off for each leg is reported in the app rather than assumed.
+
+### 5.3 Abort to Hab
+
+When the abort control is used:
+
+1. The crew member's **current position** on the timeline is taken as the start.
+2. The solver runs A\* to the habitat airlock.
+3. The slope limit is tightened to **15°** to favour reliable, hurried travel.
+4. The route, distance to go and estimated time to ingress are overlaid on the HUD.
+
+---
+
+## 6. Metabolic and oxygen model
+
+Oxygen use is estimated per route segment from walking speed and slope.
+
+**Walking speed** uses Tobler's hiking function, scaled to a suited-walking top speed:
+
+$$
+v(\theta) = v_0 \,\exp\!\big(-3.5\,\lvert \tan\theta + 0.05 \rvert\big)\quad [\text{m/s}], \qquad v_0 = 1.05\ \text{m/s}
+$$
+
+The original function (Tobler, 1993) peaks near 6 km/h on a slight descent; $v_0$ is an **assumption** that reduces this for a pressurized suit and load.
+
+**Oxygen consumption rate:**
+
+$$
+\dot V_{O_2}(\theta, v) = \dot V_{\text{rest}} + \dot V_{\text{walk}}(v)\,\big[1 + f_{\text{incline}}(\theta)\big]
+$$
+
+where $\dot V_{\text{rest}} = 0.82$ L/min and $\dot V_{\text{walk}}(v)$ is the level-ground walking cost as a function of speed, as parameterized in the source code.
+
+**Incline factor.** This is a custom, piecewise empirical curve inspired by published work on the energy cost of uphill and downhill walking (e.g. Minetti et al., 2002). It is **not** a direct implementation of any single published equation. It is continuous at 0° and at the −9° transition.
+
+$$
+f_{\text{incline}}(\theta) =
+\begin{cases}
+3.2\left(\dfrac{\theta}{20}\right)^{1.85} & \theta \ge 0 \\[3mm]
+-0.25\,\dfrac{\lvert\theta\rvert}{9} & -9^\circ \le \theta < 0 \\[3mm]
+-0.25 + 0.40\,\dfrac{\lvert\theta\rvert - 9}{11} & \theta < -9^\circ
+\end{cases}
+$$
+
+**Mass and gravity.** The suited crew member is modelled as 140 kg total mass (assumption). At Mars surface gravity of about 3.72 m/s² this corresponds to a weight of roughly 520 N.
+
+**Total oxygen for a route** with $N$ segments, segment duration $\Delta t_k = d_k / v_k$, and on-site dwell time $t_{\text{dwell}}$:
+
+$$
+O_2^{\text{total}} = \sum_{k=1}^{N} \frac{\dot V_{O_2,k}}{60}\,\Delta t_k \;+\; \frac{\dot V_{\text{rest}}}{60}\,t_{\text{dwell}} \quad [\text{L}]
+$$
+
+with time in seconds and rates in L/min.
+
+---
+
+## 7. Radiation model
+
+Dose rate along the route is estimated from Curiosity's Radiation Assessment Detector (RAD) baseline:
+
+$$
+\dot D(z,\theta) = \left[\dot D_0 + \alpha_{\text{elev}}\,\frac{z - z_0}{100\ \text{m}}\right] S_{\text{ridge}}(\theta)
+$$
+
+| Parameter | Value | Status |
+|---|---|---|
+| $\dot D_0$ | 27.2 µSv/h at the Gale datum, equivalent to about 0.65 mSv per sol | Published baseline, rounded (Hassler et al., 2014) |
+| $z_0$ | about −4450 m | Approximate datum |
+| $\alpha_{\text{elev}}$ | 0.75 µSv/h per 100 m of ascent, reflecting reduced atmospheric shielding at higher elevation | Assumption |
+| $S_{\text{ridge}}$ | 0.88 for travel along the base of a boxwork wall > 10° high, otherwise 1.0 | Assumption |
+
+The dose shown in the app is a **reference estimate** for planning discussion. It does not model solar particle events, which can raise dose rates sharply.
+
+---
+
+## 8. Solar ephemeris and irradiance
+
+Solar elevation $\alpha_s$ at latitude $\varphi$, solar declination $\delta$ and hour angle $h$:
+
+$$
+\sin\alpha_s = \sin\varphi\,\sin\delta + \cos\varphi\,\cos\delta\,\cos h
+$$
+
+Declination follows from the solar longitude $L_s$ and axial obliquity $\varepsilon = 25.19^\circ$:
+
+$$
+\sin\delta = \sin\varepsilon\,\sin L_s
+$$
+
+Direct irradiance on a horizontal surface, attenuated by dust optical depth $\tau$:
+
+$$
+I = S_0\,\max(0,\sin\alpha_s)\,\exp\!\left(-\frac{\tau}{\max(0.12,\ \sin\alpha_s)}\right)
+$$
+
+| Parameter | Value | Note |
+|---|---|---|
+| Latitude $\varphi$ | site centre latitude of the area of interest | Same site as the route grid |
+| $L_s$ | 70° | Mission season, an assumption |
+| $S_0$ | 590 W/m² | Mean solar constant at Mars's average distance. Near $L_s \approx 70^\circ$ Mars is close to aphelion, so the true value is lower (roughly 15%) and **irradiance is slightly overestimated** |
+| $\tau$ | 0.65 | Representative optical depth, an assumption |
+
+Local Mean Solar Time (LMST) drives the hour angle and the on-screen sol clock.
+
+---
+
+## 9. Surface imagery and image enhancement
+
+Each stop shows a real Curiosity Mastcam image from the NASA Planetary Data System (PDS) so the crew can preview terrain character.
+
+| Camera | Focal length | Field of view | Scale |
+|---|---|---|---|
+| Mastcam-34 | 34 mm, f/8 | about 15° × 15° | 0.22 mrad/pixel |
+| Mastcam-100 | 100 mm, f/10 | about 5.1° × 5.1° | 0.074 mrad/pixel |
+
+**Important:** Curiosity images are taken at many locations along its traverse. Images used at a stop are **analog views of similar terrain** and are labelled with their sol and location in the app. They are not photographs of the exact planned stop.
+
+**Enhancements** (decorrelation stretch and a near-infrared band ratio using the 1013 nm filter) are display techniques to emphasise colour and mineral contrast. They do not add measured information.
+
+---
+
+## 10. Parameter register
+
+| Symbol | Description | Value | Basis |
+|---|---|---|---|
+| Δs | Grid cell size | 19.53 m | Derived |
+| θ\_max (fast) | Slope limit | 20° | Assumption |
+| θ\_max (safe) | Slope limit | 16° | Assumption |
+| θ\_abort | Abort slope limit | 15° | Assumption |
+| $w_{\text{slope}}$ | Slope weight (fast / safe) | 1.3 / 4.8 | Tuned |
+| $v_0$ | Peak suited walking speed | 1.05 m/s | Assumption |
+| $\dot V_{\text{rest}}$ | Resting oxygen rate | 0.82 L/min | Assumption |
+| $m_{\text{total}}$ | Suited mass | 140 kg | Assumption |
+| $\dot D_0$ | Baseline dose rate | 27.2 µSv/h | Published, rounded |
+| $\alpha_{\text{elev}}$ | Elevation dose gradient | 0.75 µSv/h per 100 m | Assumption |
+| $S_{\text{ridge}}$ | Ridge shielding factor | 0.88 | Assumption |
+| $\varepsilon$ | Mars obliquity | 25.19° | Published |
+| $L_s$ | Solar longitude | 70° | Assumption |
+| $\tau$ | Optical depth | 0.65 | Assumption |
+
+Remaining weights ($w_{\text{climb}}$, $w_{\text{rad}}$, $H$) live in the routing configuration in the source code.
+
+---
+
+## 11. Assumptions, validation and limitations
+
+**Validation performed**
+- Unit tests cover the slope calculation and the A\* solver (optimality on known grids, blocked-cell handling, determinism).
+- Route stop locations are checked against the regions labelled on NASA's Curiosity proposed-path map for lower Mount Sharp.
+
+**Known limitations**
+- A 19.5 m grid cannot capture boulders, small scarps or loose-sand hazards that matter for walking.
+- Suit mobility, mass and metabolic parameters are simplified assumptions, not outputs of suit testing.
+- The radiation model uses a published baseline with assumed gradients and ignores solar particle events.
+- Weather and dust values are representative references, not forecasts.
+- The crew and mission are fictional and for illustration.
+
+---
+
+## 12. Reproducibility
+
+```bash
+cd scripts
+pip install -r requirements.txt
+python generate_terrain_data.py     # rebuilds DEM, slope, hazard and cost rasters
+cd ..
+npm test                            # slope and A* unit tests
+```
+
+Every layer in the app carries a **REAL / DERIVED / SIMULATED** badge, and the Data and Assumptions panel lists the source, instrument and resolution of each.
+
+---
+
+## 13. References
+
+1. Hassler, D. M., et al. (2014). *Mars' surface radiation environment measured with the Mars Science Laboratory's Curiosity rover.* Science, 343(6169).
+2. Tobler, W. (1993). *Three presentations on geographical analysis and modeling.* NCGIA Technical Report 93-1.
+3. Minetti, A. E., et al. (2002). *Energy cost of walking and running at extreme uphill and downhill slopes.* Journal of Applied Physiology, 93(3).
+4. Bell, J. F., et al. (2017). *The Mars Science Laboratory Curiosity rover Mastcam instruments: Preflight and in-flight calibration, validation, and data archiving.* Earth and Space Science, 4.
+5. NASA/JPL Mars Trek: https://trek.nasa.gov/mars/
+6. USGS-NASA Planetary Geologic Mapping Program: https://astrogeology-usgs.hub.arcgis.com/pages/interactive-maps-mars
+7. NASA, *Curiosity's proposed path up Mount Sharp*: https://science.nasa.gov/resource/curiositys-proposed-path-up-mount-sharp/

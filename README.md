@@ -272,11 +272,11 @@ Built with data and tools from:
 *This project is not affiliated with or endorsed by NASA.*
 
 **Team:** 
-Ayesha Naveed
-Bisma Shahid
-Laiba Arshad
-Afshal Liaquat
-Aiman Farooqui
+- Ayesha Naveed
+- Bisma Shahid
+- Laiba Arshad
+- Afshal Liaquat
+- Aiman Farooqui
 
 
 ---

@@ -12,7 +12,7 @@
 [![PWA](https://img.shields.io/badge/PWA-offline%20ready-5A0FC8?style=for-the-badge)](#-offline--pwa)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](#-license)
 
-[**Live Demo**](https://YOUR-DEMO-LINK) · [**Demo Video**](https://YOUR-VIDEO-LINK) · [**Methodology**](./METHODOLOGY.md) · [**Report a Bug**](https://github.com/YOUR-USERNAME/marswalk/issues)
+[**Live Demo**](https://marswalk-sooty.vercel.app) · [**Demo Video**](https://YOUR-VIDEO-LINK) · [**Methodology**](./METHODOLOGY.md) · [**More about the project**](https://drive.google.com/drive/folders/1kwQVVhulbeP265PZrkUgqo8EzQHZPnra?usp=sharing)
 
 <img src="./docs/marswalk-hero.svg" alt="MARSWALK animated banner: an EVA route drawing itself across Martian terrain with live telemetry" width="100%" />
 
